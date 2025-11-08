@@ -1,0 +1,17 @@
+const elements = [
+  { symbol: "H", name: "Wodór" },
+  { symbol: "C", name: "Węgiel" },
+  { symbol: "O", name: "Tlen" },
+  { symbol: "N", name: "Azot" },
+  { symbol: "Na", name: "Sód" },
+  { symbol: "K", name: "Potas" },
+  { symbol: "Mg", name: "Magnez" },
+  { symbol: "Ca", name: "Wapń" },
+  { symbol: "Fe", name: "Żelazo" },
+  { symbol: "Cu", name: "Miedź" },
+  { symbol: "Zn", name: "Cynk" },
+  { symbol: "Cl", name: "Chlor" },
+  { symbol: "S", name: "Siarka" },
+  { symbol: "Al", name: "Glin" },
+  { symbol: "Ag", name: "Srebro" },
+];
