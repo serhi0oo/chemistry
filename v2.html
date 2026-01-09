@@ -1,0 +1,743 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pierwiastki – Gra Drużynowa</title>
+  <style>
+:root {
+  --green1: #b4f0a7;
+  --green2: #7cd37b;
+  --gray1: #ececec;
+  --gray2: #bdbdbd;
+  --done1: #8bc34a;
+  --done2: #558b2f;
+  --btn-primary: #1976d2;
+  --btn-hover: #1663b1;
+  --accent1: #ff6b6b;
+  --accent2: #ffd93d;
+  --accent3: #6bcf7f;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  font-family: "Segoe UI", sans-serif;
+  background: radial-gradient(circle at center, var(--green1), var(--green2));
+  margin: 0;
+  padding: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  color: #1976d2;
+  overflow: hidden;
+}
+
+main {
+  width: 100vw;
+  max-width: none;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  height: 100vh;
+  gap: 14px;
+}
+
+.header {
+  width: min(1100px, 100%);
+  text-align: center;
+  margin: 0;
+  z-index: 20;
+}
+
+.stats {
+  width: 100%;
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+  font-size: clamp(16px, 2.2vmin, 22px);
+  margin: 0;
+}
+
+.stat-item {
+  background: rgba(255,255,255,0.7);
+  padding: 8px 16px;
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.reset {
+  position: fixed;
+  bottom: 15px;
+  right: 15px;
+  width: 50px;
+  height: 50px;
+  background: #43a047;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+  font-size: 1.3em;
+  color: white;
+  border: none;
+  transition: 0.3s;
+  z-index: 50;
+}
+.reset:hover { background: #2e7d32; transform: scale(1.1); }
+
+#ring-container {
+  position: relative;
+  width: min(82vmin, 720px);
+  height: min(82vmin, 720px);
+  max-width: 92vw;
+  max-height: 80vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  perspective: 1000px;
+  flex: 1;
+}
+
+#hex-ring {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  animation: none;
+  transform-origin: center center;
+}
+
+.hex {
+  position: absolute;
+  width: clamp(56px, 7.2vmin, 96px);
+  aspect-ratio: 1 / 0.866;
+  background: linear-gradient(145deg, var(--gray1), var(--gray2));
+  clip-path: polygon(25% 5%, 75% 5%, 100% 50%, 75% 95%, 25% 95%, 0% 50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: clamp(18px, 2.6vmin, 28px);
+  color: #333;
+  cursor: pointer;
+  transition: 0.25s;
+  box-shadow: 0 0 15px rgba(0,0,0,0.2);
+  animation: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.hex:hover {
+  transform: scale(1.15);
+  box-shadow: 0 0 25px rgba(0,0,0,0.3);
+  background: linear-gradient(145deg, #dcdcdc, #9e9e9e);
+}
+
+.hex.done {
+  background: linear-gradient(145deg, var(--done1), var(--done2));
+  color: white;
+  font-weight: bold;
+}
+
+#mini-game {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(255,255,255,0.985);
+  border-radius: 18px;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.25);
+  padding: 26px;
+  padding-top: 68px;
+  width: min(1100px, 94vw);
+  max-width: 94vw;
+  max-height: 88vh;
+  text-align: center;
+  animation: fadeIn 0.35s ease;
+  z-index: 100;
+  overflow-y: auto;
+}
+
+#mini-game h2 {
+  margin: 0 0 18px 0;
+  color: #1976d2;
+  font-size: clamp(18px, 2.4vmin, 26px);
+  line-height: 1.3;
+}
+
+.game-type-badge {
+  display: inline-block;
+  background: var(--accent2);
+  color: #333;
+  padding: 6px 14px;
+  border-radius: 14px;
+  font-size: clamp(13px, 1.8vmin, 16px);
+  font-weight: 700;
+  margin-bottom: 12px;
+}
+
+#back-btn {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  width: 54px;
+  height: 44px;
+  border: none;
+  border-radius: 12px;
+  background: var(--btn-primary);
+  color: white;
+  cursor: pointer;
+  transition: 0.2s;
+  font-size: 26px;
+  line-height: 44px;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+#back-btn:hover { 
+  background: var(--btn-hover);
+  transform: scale(1.03);
+}
+
+.game-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 14px;
+}
+
+@media (min-width: 900px) {
+  .game-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
+.game-btn {
+  width: 100%;
+  margin: 0;
+  padding: 16px 14px;
+  border: 2px solid var(--btn-primary);
+  border-radius: 14px;
+  background: white;
+  color: var(--btn-primary);
+  cursor: pointer;
+  transition: 0.2s;
+  font-weight: 700;
+  font-size: clamp(16px, 2.1vmin, 22px);
+  min-height: 62px;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  white-space: normal;
+  word-wrap: break-word;
+}
+
+.game-btn:hover:not(:disabled) {
+  background: var(--btn-primary);
+  color: white;
+  transform: scale(1.02);
+}
+
+.game-btn:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.game-btn:disabled {
+  opacity: 0.85;
+  cursor: not-allowed;
+}
+
+.correct {
+  background: #43a047 !important;
+  color: white !important;
+  border-color: #2e7d32 !important;
+}
+
+.wrong {
+  background: #e53935 !important;
+  color: white !important;
+  border-color: #c62828 !important;
+}
+
+.hidden { display: none; }
+
+.achievement {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: linear-gradient(135deg, var(--accent1), #ff4757);
+  color: white;
+  padding: 12px 28px;
+  border-radius: 50px;
+  font-weight: bold;
+  animation: slideDown 0.4s ease, slideUp 0.4s ease 2.2s forwards;
+  z-index: 110;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+  font-size: clamp(14px, 1.8vmin, 18px);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-20px);
+  }
+}
+
+@media (max-width: 480px) {
+  main { padding: 12px; gap: 10px; }
+  .game-grid { gap: 10px; }
+  .game-btn { min-height: 56px; padding: 12px 10px; }
+}
+  </style>
+</head>
+<body>
+  <main>
+    <div class="header">
+      <div class="stats">
+        <div class="stat-item">🔴 <span id="red-score">0</span></div>
+        <div class="stat-item">🔵 <span id="blue-score">0</span></div>
+        <div class="stat-item">Tura: <span id="turn-team">Czerwone 🔴</span></div>
+      </div>
+    </div>
+
+    <button id="reset-btn" class="reset">🔄</button>
+
+    <div id="ring-container">
+      <section id="hex-ring"></section>
+    </div>
+
+    <section id="mini-game" class="hidden">
+      <button id="back-btn" aria-label="Powrót">←</button>
+      <div id="game-content"></div>
+    </section>
+  </main>
+
+  <script>
+const elements = [
+  { symbol: "H", name: "Wodór" },
+  { symbol: "C", name: "Węgiel" },
+  { symbol: "O", name: "Tlen" },
+  { symbol: "N", name: "Azot" },
+  { symbol: "Na", name: "Sód" },
+  { symbol: "K", name: "Potas" },
+  { symbol: "Mg", name: "Magnez" },
+  { symbol: "Ca", name: "Wapń" },
+  { symbol: "Fe", name: "Żelazo" },
+  { symbol: "Cu", name: "Miedź" },
+  { symbol: "Zn", name: "Cynk" },
+  { symbol: "Cl", name: "Chlor" },
+  { symbol: "S", name: "Siarka" },
+  { symbol: "Al", name: "Glin" },
+  { symbol: "Ag", name: "Srebro" },
+];
+
+const ring = document.getElementById("hex-ring");
+const miniGame = document.getElementById("mini-game");
+const gameContent = document.getElementById("game-content");
+const backBtn = document.getElementById("back-btn");
+const resetBtn = document.getElementById("reset-btn");
+
+const redScoreEl = document.getElementById("red-score");
+const blueScoreEl = document.getElementById("blue-score");
+const turnTeamEl = document.getElementById("turn-team");
+
+const TEAMS = ["Czerwone 🔴", "Niebieskie 🔵"];
+
+let progress = JSON.parse(localStorage.getItem("chem-progress") || "[]");
+let teamScores = JSON.parse(localStorage.getItem("chem-team-scores") || '{"Czerwone 🔴":0,"Niebieskie 🔵":0}');
+let currentTurnTeam = localStorage.getItem("chem-turn") || TEAMS[0];
+
+const container = document.getElementById("ring-container");
+let activeChallenge = null;
+let lastTaskId = null;
+
+function updateScore() {
+  redScoreEl.textContent = teamScores[TEAMS[0]] || 0;
+  blueScoreEl.textContent = teamScores[TEAMS[1]] || 0;
+  turnTeamEl.textContent = currentTurnTeam;
+}
+
+function nextTeam() {
+  currentTurnTeam = currentTurnTeam === TEAMS[0] ? TEAMS[1] : TEAMS[0];
+  localStorage.setItem("chem-turn", currentTurnTeam);
+  updateScore();
+}
+
+function showAchievement(text) {
+  const achievement = document.createElement("div");
+  achievement.className = "achievement";
+  achievement.textContent = text;
+  document.body.appendChild(achievement);
+  setTimeout(() => achievement.remove(), 2200);
+}
+
+function shuffle(arr) { return [...arr].sort(() => Math.random() - 0.5); }
+function getRandomNames(ex, c) { return shuffle(elements.map(e => e.name).filter(n => n !== ex)).slice(0, c); }
+function getRandomSymbols(ex, c) { return shuffle(elements.map(e => e.symbol).filter(s => s !== ex)).slice(0, c); }
+
+function initializeHexes() {
+  ring.innerHTML = "";
+
+  const rect = container.getBoundingClientRect();
+  const radius = Math.min(rect.width, rect.height) / 2.35;
+
+  elements.forEach((el, i) => {
+    const hex = document.createElement("div");
+    hex.className = "hex";
+    hex.dataset.symbol = el.symbol;
+
+    if (progress.includes(el.symbol)) {
+      hex.classList.add("done");
+      hex.textContent = el.symbol;
+    } else {
+      hex.textContent = "❓";
+    }
+
+    const angle = (i / elements.length) * 2 * Math.PI;
+    const x = rect.width / 2 + radius * Math.cos(angle);
+    const y = rect.height / 2 + radius * Math.sin(angle);
+
+    hex.style.left = `${x}px`;
+    hex.style.top = `${y}px`;
+    hex.style.transform = "translate(-50%, -50%)";
+
+    hex.addEventListener("click", () => startMiniGame(i, hex));
+    ring.appendChild(hex);
+  });
+
+  updateScore();
+}
+
+window.addEventListener("resize", () => initializeHexes());
+
+function returnToMenu() {
+  activeChallenge = null;
+  miniGame.classList.add("hidden");
+  ring.classList.remove("hidden");
+  gameContent.innerHTML = "";
+  updateScore();
+}
+
+function resetProgress() {
+  if (!confirm("Zresetować grę (pierwiastki + punkty drużyn)?")) return;
+  localStorage.removeItem("chem-progress");
+  localStorage.removeItem("chem-team-scores");
+  localStorage.removeItem("chem-turn");
+
+  progress = [];
+  teamScores = { [TEAMS[0]]: 0, [TEAMS[1]]: 0 };
+  currentTurnTeam = TEAMS[0];
+
+  initializeHexes();
+  showAchievement("🔄 Reset!");
+}
+
+function renderBadge(text) {
+  const badge = document.createElement("div");
+  badge.className = "game-type-badge";
+  badge.textContent = text;
+  gameContent.appendChild(badge);
+}
+
+function renderH2(text) {
+  const h2 = document.createElement("h2");
+  h2.textContent = text;
+  gameContent.appendChild(h2);
+}
+
+function renderGrid(options, onPick) {
+  const grid = document.createElement("div");
+  grid.className = "game-grid";
+
+  options.forEach(opt => {
+    const btn = document.createElement("button");
+    btn.className = "game-btn";
+    btn.textContent = opt;
+    btn.onclick = () => onPick(btn, opt);
+    grid.appendChild(btn);
+  });
+
+  gameContent.appendChild(grid);
+}
+
+function lockButtons() {
+  Array.from(document.querySelectorAll(".game-btn")).forEach(b => b.disabled = true);
+}
+
+function startMiniGame(index, hex) {
+  if (hex.classList.contains("done")) return;
+
+  const element = elements[index];
+
+  ring.classList.add("hidden");
+  miniGame.classList.remove("hidden");
+  gameContent.innerHTML = "";
+
+  const stepsNeeded = progress.length >= 10 ? 3 : 2;
+  activeChallenge = { element, hex, stepsNeeded, stepsDone: 0 };
+
+  showAchievement(`Tura: ${currentTurnTeam}`);
+  nextStep();
+}
+
+function finishWin() {
+  const { element, hex } = activeChallenge;
+
+  hex.classList.add("done");
+  hex.textContent = element.symbol;
+
+  if (!progress.includes(element.symbol)) {
+    progress.push(element.symbol);
+    localStorage.setItem("chem-progress", JSON.stringify(progress));
+  }
+
+  teamScores[currentTurnTeam] = (teamScores[currentTurnTeam] || 0) + 1;
+  localStorage.setItem("chem-team-scores", JSON.stringify(teamScores));
+
+  showAchievement(`✅ +1 dla ${currentTurnTeam}`);
+  nextTeam();
+
+  setTimeout(returnToMenu, 900);
+}
+
+function finishLose() {
+  showAchievement(`❌ Pudło — tura dalej`);
+  nextTeam();
+  setTimeout(returnToMenu, 900);
+}
+
+function handlePick(btn, ok) {
+  lockButtons();
+  btn.classList.add(ok ? "correct" : "wrong");
+
+  if (!activeChallenge) return;
+
+  if (ok) {
+    activeChallenge.stepsDone += 1;
+
+    if (activeChallenge.stepsDone >= activeChallenge.stepsNeeded) {
+      setTimeout(finishWin, 650);
+    } else {
+      const left = activeChallenge.stepsNeeded - activeChallenge.stepsDone;
+      showAchievement(`Dobrze! Jeszcze ${left}`);
+      setTimeout(() => {
+        gameContent.innerHTML = "";
+        nextStep();
+      }, 650);
+    }
+  } else {
+    setTimeout(finishLose, 650);
+  }
+}
+
+const atomicNumbers = {
+  "H": 1, "C": 6, "O": 8, "N": 7, "Na": 11, "K": 19, "Mg": 12, "Ca": 20,
+  "Fe": 26, "Cu": 29, "Zn": 30, "Cl": 17, "S": 16, "Al": 13, "Ag": 47
+};
+
+const categories = {
+  "H": "Niemetale", "C": "Niemetale", "O": "Niemetale", "N": "Niemetale", "Cl": "Niemetale", "S": "Niemetale",
+  "Na": "Metale alkaliczne", "K": "Metale alkaliczne",
+  "Mg": "Metale ziem alkalicznych", "Ca": "Metale ziem alkalicznych",
+  "Al": "Metale (grupa borowców)",
+  "Fe": "Metale przejściowe", "Cu": "Metale przejściowe", "Zn": "Metale przejściowe", "Ag": "Metale przejściowe"
+};
+
+const oxidation = {
+  "H": "+1", "C": "+4", "O": "-2", "N": "-3", "Na": "+1", "K": "+1",
+  "Mg": "+2", "Ca": "+2", "Al": "+3", "Fe": "+2", "Cu": "+2", "Zn": "+2", "Ag": "+1",
+  "Cl": "-1", "S": "-2"
+};
+
+const stateRT = {
+  "H": "Gaz", "O": "Gaz", "N": "Gaz", "Cl": "Gaz",
+  "C": "Ciało stałe", "S": "Ciało stałe", "Na": "Ciało stałe", "K": "Ciało stałe",
+  "Mg": "Ciało stałe", "Ca": "Ciało stałe", "Al": "Ciało stałe", "Fe": "Ciało stałe",
+  "Cu": "Ciało stałe", "Zn": "Ciało stałe", "Ag": "Ciało stałe"
+};
+
+const compounds = {
+  "H": "H₂O (woda)",
+  "C": "CO₂ (dwutlenek węgla)",
+  "O": "O₂ (tlen)",
+  "N": "NH₃ (amoniak)",
+  "Na": "NaCl (sól)",
+  "K": "KOH (wodorotlenek potasu)",
+  "Mg": "MgO (tlenek magnezu)",
+  "Ca": "CaCO₃ (węglan wapnia)",
+  "Fe": "Fe₂O₃ (tlenek żelaza)",
+  "Cu": "CuSO₄ (siarczan miedzi)",
+  "Zn": "ZnO (tlenek cynku)",
+  "Cl": "HCl (chlorowodór)",
+  "S": "SO₂ (dwutlenek siarki)",
+  "Al": "Al₂O₃ (tlenek glinu)",
+  "Ag": "AgNO₃ (azotan srebra)"
+};
+
+function task_symbol_to_name(element) {
+  renderBadge("SYMBOL → NAZWA");
+  renderH2(`Który pierwiastek ma symbol "${element.symbol}"?`);
+  const opts = shuffle([element.name, ...getRandomNames(element.name, 5)]);
+  renderGrid(opts, (btn, pick) => handlePick(btn, pick === element.name));
+}
+
+function task_name_to_symbol(element) {
+  renderBadge("NAZWA → SYMBOL");
+  renderH2(`Jaki jest symbol pierwiastka: "${element.name}"?`);
+  const opts = shuffle([element.symbol, ...getRandomSymbols(element.symbol, 5)]);
+  renderGrid(opts, (btn, pick) => handlePick(btn, pick === element.symbol));
+}
+
+function task_atomic_number(element) {
+  renderBadge("NUMER ATOMOWY");
+  const correct = atomicNumbers[element.symbol];
+  renderH2(`Jaki jest numer atomowy: ${element.name} (${element.symbol})?`);
+
+  const deltas = shuffle([-6, -3, -2, -1, +1, +2, +3, +6]).slice(0, 5);
+  const wrongs = deltas.map(d => correct + d).filter(n => n > 0);
+  const opts = shuffle([correct, ...wrongs]).slice(0, 6).map(String);
+
+  renderGrid(opts, (btn, pick) => handlePick(btn, Number(pick) === correct));
+}
+
+function task_category(element) {
+  renderBadge("KATEGORIA");
+  const correct = categories[element.symbol] || "Niemetale";
+  renderH2(`Do jakiej kategorii należy ${element.name}?`);
+
+  const all = [...new Set(Object.values(categories))];
+  const opts = shuffle([correct, ...shuffle(all.filter(x => x !== correct)).slice(0, 5)]);
+
+  renderGrid(opts, (btn, pick) => handlePick(btn, pick === correct));
+}
+
+function task_oxidation(element) {
+  renderBadge("STOPIEŃ UTLENIENIA");
+  const correct = oxidation[element.symbol];
+  renderH2(`Najczęstszy stopień utlenienia: ${element.name} (${element.symbol})?`);
+
+  const pool = ["-3", "-2", "-1", "+1", "+2", "+3", "+4", "+6"];
+  const opts = shuffle([correct, ...shuffle(pool.filter(x => x !== correct)).slice(0, 5)]);
+
+  renderGrid(opts, (btn, pick) => handlePick(btn, pick === correct));
+}
+
+function task_state(element) {
+  renderBadge("STAN SKUPIENIA");
+  const correct = stateRT[element.symbol] || "Ciało stałe";
+  renderH2(`Stan skupienia w temp. pokojowej: ${element.name}?`);
+
+  const pool = ["Gaz", "Ciało stałe", "Ciecz"];
+  const opts = shuffle([correct, ...shuffle(pool.filter(x => x !== correct)), ...shuffle(pool)]).slice(0, 6);
+
+  renderGrid(opts, (btn, pick) => handlePick(btn, pick === correct));
+}
+
+function task_compound(element) {
+  renderBadge("ZWIĄZEK");
+  const correct = compounds[element.symbol];
+  renderH2(`Który wzór najlepiej kojarzy się z ${element.name}?`);
+
+  const all = Object.values(compounds);
+  const opts = shuffle([correct, ...shuffle(all.filter(x => x !== correct)).slice(0, 5)]);
+
+  renderGrid(opts, (btn, pick) => handlePick(btn, pick === correct));
+}
+
+function task_true_false_metal(element) {
+  renderBadge("PRAWDA / FAŁSZ");
+  const metals = ["Fe","Cu","Ag","Zn","Al","Ca","K","Na","Mg"];
+  const isMetal = metals.includes(element.symbol);
+  renderH2(`${element.name} to metal?`);
+
+  const opts = ["✅ PRAWDA", "❌ FAŁSZ"];
+  renderGrid(opts, (btn, pick) => {
+    const ok = (pick === "✅ PRAWDA" && isMetal) || (pick === "❌ FAŁSZ" && !isMetal);
+    handlePick(btn, ok);
+  });
+}
+
+function task_fun_fact(element) {
+  renderBadge("CIEKAWOSTKA");
+  const facts = {
+    "H": ["Najlżejszy pierwiastek", "Znajduje się na Słońcu", "Używany w paliwach", "Wodór ma 1 proton"],
+    "C": ["Węgiel tworzy diamenty", "Główna podstawa życia", "Atom węgla z 4 elektronami", "Najstarsza znana metoda datowania"],
+    "O": ["Potrzebny do oddychania", "Drugiej co do masy w organizmach", "Powstaje w gwiazdach", "Tlen ma 8 protonów"],
+    "Fe": ["Żelazo w naszej krwi", "Najczęściej używany metal", "Przyciąga magnesy", "Rdzewiejący metal"],
+    "Cu": ["Doskonały przewodnik elektryczny", "Zielona patyna na statuach", "Miedź ma 29 protonów", "Używana w kablach"],
+    "N": ["Stanowi 78% powietrza", "Czysty azot bez zapachu", "Niezbędny do roślin", "Azot ma 7 protonów"],
+    "Ca": ["Buduje nasze kości", "Znajduje się w mleku", "Wapń ma 20 protonów", "Niezbędny dla zdrowych zębów"],
+    "S": ["Siarka ma charakterystyczny zapach", "Znajduje się w białkach", "Kolor żółty siarki", "Siarka ma 16 protonów"],
+    "Na": ["Sód w soli kuchennej", "Potrzebny organizmowi", "Sód ma 11 protonów", "Srebrzysto-biały metal"],
+    "K": ["Potas w bananach", "Ważny dla serca", "Potas ma 19 protonów", "Reaktywny z wodą"],
+    "Mg": ["Magnez w chlorofilu", "Lightweight metal", "Magnez ma 12 protonów", "Używany w bateriach"],
+    "Al": ["Glin lekki i mocny", "Trzeci co do masy element", "Glin ma 13 protonów", "Wykorzystywany w opakowaniach"],
+    "Zn": ["Cynk wzmacnia odporność", "Znajduje się w kosmetykach", "Cynk ma 30 protonów", "Chroni przed rdzą"],
+    "Cl": ["Chlor sterylizuje wodę", "Zielonkawy gaz ostrym zapachu", "Chlor ma 17 protonów", "Składnik soli"],
+    "Ag": ["Srebro droższe od złota", "Używane w biżuterii", "Srebro ma 47 protonów", "Najlepszy przewodnik elektryczny"]
+  };
+
+  const factList = facts[element.symbol] || ["To ważny pierwiastek", "Jest w tablicy Mendelejewa"];
+  const q = factList[Math.floor(Math.random() * factList.length)];
+  
+  renderH2(`${element.name}: "${q}" – to PRAWDA?`);
+  const opts = ["✅ PRAWDA", "❌ FAŁSZ"];
+  renderGrid(opts, (btn, pick) => handlePick(btn, pick === "✅ PRAWDA"));
+}
+
+const TASKS = [
+  { id: "s2n", run: task_symbol_to_name },
+  { id: "n2s", run: task_name_to_symbol },
+  { id: "Z",   run: task_atomic_number },
+  { id: "cat", run: task_category },
+  { id: "ox",  run: task_oxidation },
+  { id: "st",  run: task_state },
+  { id: "cmp", run: task_compound },
+  { id: "tfm", run: task_true_false_metal },
+  { id: "fun", run: task_fun_fact },
+];
+
+function nextStep() {
+  if (!activeChallenge) return;
+
+  let pick = shuffle(TASKS)[0];
+  if (TASKS.length > 1) {
+    while (pick.id === lastTaskId) pick = shuffle(TASKS)[0];
+  }
+  lastTaskId = pick.id;
+
+  pick.run(activeChallenge.element);
+}
+
+resetBtn.addEventListener("click", resetProgress);
+backBtn.addEventListener("click", returnToMenu);
+
+initializeHexes();
+updateScore();
+  </script>
+</body>
+</html>
